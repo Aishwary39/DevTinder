@@ -37,3 +37,8 @@
 35. API - Get user by email
 36. API - Get /feed - Get all the users from the database
 37. API - Get user by id
+38. API - Create a delete user API
+39. Difference between PATCH and PUT
+40. API - Create a update user API
+41. Explore options in Model.findOneAndUpdate
+42. API : Create a API for update the user using email id
