@@ -42,3 +42,11 @@
 40. API - Create a update user API
 41. Explore options in Model.findOneAndUpdate
 42. API : Create a API for update the user using email id
+43. Explore SchemaType options from the documentation
+44. Add required, unique, lowercase, min, minLength, trim
+45. Add default type,timestamps in SchemaType
+46. Create a custom validate function for gender
+47. Improve the DB schema, put all appropriate validations on each field in Schema
+48. API level validations on patch(update) request and signup request
+49. Data Santization : Add API level validation for each field
+50. Explore Validator library function and use validator functions for password, email etc.

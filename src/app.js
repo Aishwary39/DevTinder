@@ -16,7 +16,7 @@ app.post("/signup", async (req, res) => {
     await newUser.save();
     res.send("User added successfully");
   } catch (error) {
-    res.status(400).send("Some error occurred");
+    res.status(400).send("Failed to register a user : " + error.message);
   }
 });
 
@@ -83,14 +83,38 @@ app.delete("/user", async (req, res) => {
 
 // 6. Update a user by id
 
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  // it will be more beneficial to read the id from the parameters instead of body else id can also get changed if tried
+  //const userId = req.body.userId;
+  const userId = req.params?.userId;
   const data = req.body;
-
+  console.log(userId);
   try {
+    // Fields which are allowed to update, eg emailId can not be updated, it should be fixed always
+    const ALLOWED_UPDATES = [
+      "firstName",
+      "lastName",
+      "age",
+      "skills",
+      "password",
+      "photoUrl",
+      "about",
+    ];
+
+    const isUpdateAllowed = Object.keys(data).every((item) => {
+      return ALLOWED_UPDATES.includes(item);
+    });
+
+    if (!isUpdateAllowed) {
+      throw new Error("Certain fields are not allowed to update");
+    }
+    const { skills } = data;
+
+    if (skills && skills?.length > 10) {
+      throw new Error("Skills shouls be less than 10.");
+    }
     const updatedUser = await User.findByIdAndUpdate(userId, data);
     //const updatedUser = User.findByIdAndUpdate({_id: userId}, data); // both lines are same thing
-
     /**
      * without options parameter (before/after) in findOneAndUpdate, updatedUser will return the state of user before the update
      */
@@ -100,7 +124,7 @@ app.patch("/user", async (req, res) => {
       res.send("No user exists with the userId");
     }
   } catch (error) {
-    res.status(400).send("Some error occurred");
+    res.status(400).send("Failed to update the user : " + error.message);
   }
 });
 
