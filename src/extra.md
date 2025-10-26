@@ -50,3 +50,8 @@
 48. API level validations on patch(update) request and signup request
 49. Data Santization : Add API level validation for each field
 50. Explore Validator library function and use validator functions for password, email etc.
+51. Validate data in Signup API
+52. Install bcrypt package.
+53. Create PasswordHash using bcrypt.hash and save the user with encrypted password
+54. Create Login API
+55. Compare passwords and throw error if email or password is invalid

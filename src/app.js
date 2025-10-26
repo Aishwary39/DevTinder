@@ -1,6 +1,8 @@
 const express = require("express");
 const connectDB = require("./config/database");
+const bcrypt = require("bcrypt");
 const User = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
 
 const app = express();
 
@@ -10,9 +12,25 @@ app.use(express.json());
 
 // 1. Adding a new data to the database
 app.post("/signup", async (req, res) => {
-  // creating a new instance of a user
-  const newUser = new User(req.body);
   try {
+    const { firstName, lastName, emailId, password } = req.body;
+
+    // validate the data
+    validateSignUpData(firstName, emailId, password);
+
+    // encrypt the password
+    const saltRounds = 10; // salt round is an alphanumeric string which is been used to generate a hash.
+
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // creating a new instance of a user
+    const newUser = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
+
     await newUser.save();
     res.send("User added successfully");
   } catch (error) {
@@ -20,6 +38,27 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// 2. Login API
+
+app.get("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Please enter valid email or password");
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) {
+      res.send("Login successfull");
+    } else {
+      throw new Error("Please enter valid email or password");
+    }
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).send("Error : " + error.message);
+  }
+});
 // 2. Get user by email
 
 app.get("/getUserByEmail", async (req, res) => {
