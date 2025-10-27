@@ -3,12 +3,15 @@ const connectDB = require("./config/database");
 const bcrypt = require("bcrypt");
 const User = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
 // Using app.use to use express json middleware all through my application to transform the request data to json else req.body will not able to read it.
 
 app.use(express.json());
+app.use(cookieParser());
 
 // 1. Adding a new data to the database
 app.post("/signup", async (req, res) => {
@@ -39,7 +42,6 @@ app.post("/signup", async (req, res) => {
 });
 
 // 2. Login API
-
 app.get("/login", async (req, res) => {
   try {
     const { emailId, password } = req.body;
@@ -50,6 +52,13 @@ app.get("/login", async (req, res) => {
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (isPasswordValid) {
+      /**
+       * before sending login successful, we will add json web token to cookie and send with the response
+       * which will be stored by the browser/postman and should be sent with every other request to authenticate user
+       * at the backend level before sending any requested data
+       */
+      const token = jwt.sign({ id: user._id }, "DevTinder@2025&!"); // second parameter is secret key, for the time it is any random string;
+      res.cookie("access_token", token);
       res.send("Login successfull");
     } else {
       throw new Error("Please enter valid email or password");
@@ -59,7 +68,37 @@ app.get("/login", async (req, res) => {
     res.status(400).send("Error : " + error.message);
   }
 });
-// 2. Get user by email
+
+// 3. Profile API
+
+app.get("/profile", async (req, res) => {
+  /**
+   * before getting the profile of a particular user, one has to know if it is valid user of not
+   * for that we will use JSON Web Token which will be send during login API call to browser/postman
+   *
+   * and then that token we will store in the cookie
+   * (to read that we need cookie-parser npm library to parse, else will return undefined, the same way we used express.json() npm package to parse req.body)
+   */
+
+  const cookie = req.cookies;
+  try {
+    const { access_token } = cookie;
+    if (!access_token) {
+      throw new Error("Invalid token");
+    }
+    const decodedToken = jwt.verify(access_token, "DevTinder@2025&!"); // second parameter is same secret key used while login, for the time it is any random string
+
+    const user = await User.findOne({ _id: decodedToken.id });
+    if (!user) {
+      throw new Error("Invalid token, Please login again");
+    }
+    res.send(user);
+  } catch (error) {
+    res.status(400).send("Error : " + error.message);
+  }
+});
+
+// 3. Get user by email
 
 app.get("/getUserByEmail", async (req, res) => {
   const email = req.body.email;
@@ -77,7 +116,7 @@ app.get("/getUserByEmail", async (req, res) => {
   }
 });
 
-// 3. Get one user always
+// 4. Get one user always
 
 app.get("/getUniqueUser", async (req, res) => {
   const email = req.body.email;
@@ -91,7 +130,7 @@ app.get("/getUniqueUser", async (req, res) => {
   }
 });
 
-// 4. Get all users
+// 5. Get all users
 
 app.get("/feed", async (req, res) => {
   try {
@@ -102,7 +141,7 @@ app.get("/feed", async (req, res) => {
   }
 });
 
-// 5. Delete a user by id
+// 6. Delete a user by id
 
 app.delete("/user", async (req, res) => {
   const userId = req.body.userId;
@@ -120,7 +159,7 @@ app.delete("/user", async (req, res) => {
   }
 });
 
-// 6. Update a user by id
+// 7. Update a user by id
 
 app.patch("/user/:userId", async (req, res) => {
   // it will be more beneficial to read the id from the parameters instead of body else id can also get changed if tried

@@ -55,3 +55,13 @@
 53. Create PasswordHash using bcrypt.hash and save the user with encrypted password
 54. Create Login API
 55. Compare passwords and throw error if email or password is invalid
+56. JWT Token is divided into three parts in the same sequence :
+    a. Header
+    b. Payload
+    c. Signature
+57. Install cookie parser
+58. Send a dummy cookie
+59. Create a /Get profile API and check if the cookie is back.
+60. Install jsonwebtoken API
+61. In login API, after email and password validation create a JWT token
+62. Read the cookie inside your profile API and find the logged in user
